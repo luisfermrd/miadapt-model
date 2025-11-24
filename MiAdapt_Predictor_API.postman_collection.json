@@ -1,0 +1,380 @@
+{
+	"info": {
+		"_postman_id": "miadapt-predictor-api-collection",
+		"name": "MiAdapt Predictor API",
+		"description": "Colección de Postman para probar la API de Recomendación de Rutas de Aprendizaje",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "General",
+			"item": [
+				{
+					"name": "Información General - GET /",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Endpoint raíz que devuelve información sobre la API y los endpoints disponibles"
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check - GET /health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Verifica que la API y el modelo estén funcionando correctamente"
+					},
+					"response": []
+				},
+				{
+					"name": "Información del Modelo - GET /model/info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/model/info",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"model",
+								"info"
+							]
+						},
+						"description": "Obtiene información detallada sobre el modelo entrenado (métricas, fecha, etc.)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints generales de información y estado"
+		},
+		{
+			"name": "Predicción",
+			"item": [
+				{
+					"name": "Predicción Individual - POST /predict (Mínimo)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"porcentaje_diagnostico_inicial\": 55.0,\n  \"nivel_motivacion\": 5,\n  \"ritmo_aprendizaje\": \"NORMAL\",\n  \"estilo_dominante\": \"AUDITIVO\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Predicción con solo los campos obligatorios"
+					},
+					"response": []
+				},
+				{
+					"name": "Predicción Individual - POST /predict (Completo)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"porcentaje_diagnostico_inicial\": 65.5,\n  \"nivel_motivacion\": 7,\n  \"ritmo_aprendizaje\": \"NORMAL\",\n  \"estilo_dominante\": \"VISUAL\",\n  \"velocidad_progreso\": 4.5,\n  \"ratio_intentos_exitosos\": 0.75,\n  \"mejora_tendencia\": 0.15,\n  \"estilo_visual\": 50,\n  \"estilo_auditivo\": 29,\n  \"estilo_kinestesico\": 21,\n  \"puntuacion_concepto_basico_promedio\": 78.3,\n  \"puntuacion_concepto_intermedio_promedio\": 68.9,\n  \"puntuacion_concepto_avanzado_promedio\": 65.9,\n  \"tasa_aciertos_basicos\": 0.78,\n  \"tasa_aciertos_intermedios\": 0.69,\n  \"tasa_aciertos_avanzados\": 0.66,\n  \"lecciones_completadas\": 18,\n  \"lecciones_totales\": 20,\n  \"tiempo_promedio_por_sesion_min\": 27.2,\n  \"confianza_promedio\": 0.61\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Predicción con todos los campos disponibles para mayor precisión"
+					},
+					"response": []
+				},
+				{
+					"name": "Predicción Individual - POST /predict (Ritmo LENTO)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"porcentaje_diagnostico_inicial\": 45.0,\n  \"nivel_motivacion\": 4,\n  \"ritmo_aprendizaje\": \"LENTO\",\n  \"estilo_dominante\": \"AUDITIVO\",\n  \"velocidad_progreso\": 2.1,\n  \"ratio_intentos_exitosos\": 0.55,\n  \"confianza_promedio\": 0.45\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Ejemplo con estudiante de ritmo lento"
+					},
+					"response": []
+				},
+				{
+					"name": "Predicción Individual - POST /predict (Ritmo RAPIDO)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"porcentaje_diagnostico_inicial\": 80.0,\n  \"nivel_motivacion\": 8,\n  \"ritmo_aprendizaje\": \"RAPIDO\",\n  \"estilo_dominante\": \"KINESTESICO\",\n  \"velocidad_progreso\": 6.8,\n  \"ratio_intentos_exitosos\": 0.88,\n  \"mejora_tendencia\": 0.25,\n  \"confianza_promedio\": 0.82\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Ejemplo con estudiante de ritmo rápido"
+					},
+					"response": []
+				},
+				{
+					"name": "Predicción Batch - POST /predict/batch",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"estudiantes\": [\n    {\n      \"porcentaje_diagnostico_inicial\": 65.5,\n      \"nivel_motivacion\": 7,\n      \"ritmo_aprendizaje\": \"NORMAL\",\n      \"estilo_dominante\": \"VISUAL\"\n    },\n    {\n      \"porcentaje_diagnostico_inicial\": 45.0,\n      \"nivel_motivacion\": 4,\n      \"ritmo_aprendizaje\": \"LENTO\",\n      \"estilo_dominante\": \"AUDITIVO\"\n    },\n    {\n      \"porcentaje_diagnostico_inicial\": 80.0,\n      \"nivel_motivacion\": 8,\n      \"ritmo_aprendizaje\": \"RAPIDO\",\n      \"estilo_dominante\": \"KINESTESICO\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict/batch",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict",
+								"batch"
+							]
+						},
+						"description": "Predicción para múltiples estudiantes en una sola petición"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para realizar predicciones de rutas de aprendizaje"
+		},
+		{
+			"name": "Casos de Prueba - Errores",
+			"item": [
+				{
+					"name": "Error - Validación (porcentaje fuera de rango)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"porcentaje_diagnostico_inicial\": 150.0,\n  \"nivel_motivacion\": 7,\n  \"ritmo_aprendizaje\": \"NORMAL\",\n  \"estilo_dominante\": \"VISUAL\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Prueba de validación: porcentaje fuera del rango válido (0-100)"
+					},
+					"response": []
+				},
+				{
+					"name": "Error - Validación (ritmo inválido)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"porcentaje_diagnostico_inicial\": 65.5,\n  \"nivel_motivacion\": 7,\n  \"ritmo_aprendizaje\": \"MEDIO\",\n  \"estilo_dominante\": \"VISUAL\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Prueba de validación: ritmo de aprendizaje inválido (debe ser LENTO, NORMAL o RAPIDO)"
+					},
+					"response": []
+				},
+				{
+					"name": "Error - Validación (estilo inválido)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"porcentaje_diagnostico_inicial\": 65.5,\n  \"nivel_motivacion\": 7,\n  \"ritmo_aprendizaje\": \"NORMAL\",\n  \"estilo_dominante\": \"TACTIL\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Prueba de validación: estilo dominante inválido (debe ser VISUAL, AUDITIVO, KINESTESICO o MIXTO)"
+					},
+					"response": []
+				},
+				{
+					"name": "Error - Validación (campo faltante)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"porcentaje_diagnostico_inicial\": 65.5,\n  \"nivel_motivacion\": 7\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/predict",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"predict"
+							]
+						},
+						"description": "Prueba de validación: campos obligatorios faltantes (ritmo_aprendizaje y estilo_dominante)"
+					},
+					"response": []
+				}
+			],
+			"description": "Casos de prueba para validar el manejo de errores"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		}
+	]
+}
+

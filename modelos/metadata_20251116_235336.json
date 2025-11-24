@@ -1,0 +1,41 @@
+{
+  "fecha_entrenamiento": "2025-11-16T23:53:36.724932",
+  "modelo": "Random Forest",
+  "features": [
+    "porcentaje_diagnostico_inicial",
+    "nivel_motivacion",
+    "velocidad_progreso",
+    "ratio_intentos_exitosos",
+    "mejora_tendencia",
+    "estilo_visual_norm",
+    "estilo_auditivo_norm",
+    "estilo_kinestesico_norm",
+    "desempeno_promedio",
+    "tasa_exito_general",
+    "experiencia",
+    "tiempo_promedio_por_sesion_min",
+    "confianza_promedio",
+    "ritmo_aprendizaje_LENTO",
+    "ritmo_aprendizaje_NORMAL",
+    "ritmo_aprendizaje_RAPIDO",
+    "nivel_diagnostico_cat_ALTO",
+    "nivel_diagnostico_cat_BAJO",
+    "nivel_diagnostico_cat_MEDIO",
+    "nivel_motivacion_cat_ALTA",
+    "nivel_motivacion_cat_MEDIA",
+    "estilo_dominante_AUDITIVO",
+    "estilo_dominante_KINESTESICO",
+    "estilo_dominante_MIXTO",
+    "estilo_dominante_VISUAL"
+  ],
+  "num_features": 25,
+  "num_clases": 29,
+  "metricas": {
+    "accuracy_test": 0.9466666666666667,
+    "precision_test": 0.9483792281953053,
+    "recall_test": 0.9466666666666667,
+    "f1_test": 0.9448392859034798
+  },
+  "tamano_entrenamiento": 4250,
+  "tamano_test": 750
+}
