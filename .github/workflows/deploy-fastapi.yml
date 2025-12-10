@@ -43,6 +43,13 @@ jobs:
             exit 1
           fi
 
+          # Copiar run.py
+          if [ -f "run.py" ]; then
+            cp run.py deploy-package/
+          else
+            echo "⚠️ Advertencia: run.py no encontrado"
+          fi
+
           echo "📁 Contenido final del paquete:"
           ls -la deploy-package
 
