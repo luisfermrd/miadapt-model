@@ -1,4 +1,4 @@
-name: Deploy Python FastAPI API
+name: Deploy Python Flask API
 
 on:
   push:
@@ -43,14 +43,6 @@ jobs:
             exit 1
           fi
 
-          # Copiar passenger_wsgi.py
-          if [ -f "passenger_wsgi.py" ]; then
-            cp passenger_wsgi.py deploy-package/
-          else
-            echo "❌ Error: passenger_wsgi.py no encontrado"
-            exit 1
-          fi
-
           echo "📁 Contenido final del paquete:"
           ls -la deploy-package
 
@@ -70,7 +62,7 @@ jobs:
           timeout: 600000
 
       # ----------------------------------------------------------------------
-      # 3. Reiniciar Passenger (FastAPI)
+      # 3. Reiniciar Passenger (Flask)
       # ----------------------------------------------------------------------
       - name: Restart Python API (Passenger)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.2

@@ -1,8 +1,7 @@
 """
 API principal de Recomendación de Rutas de Aprendizaje
 """
-from fastapi import FastAPI, HTTPException, status
-from fastapi.responses import JSONResponse
+from flask import Flask, request, jsonify
 from app.models import (
     DatosEstudiante, 
     ResponseModel, 
@@ -12,109 +11,111 @@ from app.models import (
 )
 from app.predictor import PredictorRutas
 from app.utils import obtener_nombre_ruta
+from pydantic import ValidationError
 import os
 
-# Inicializar FastAPI
-app = FastAPI(
-    title="API de Recomendación de Rutas de Aprendizaje",
-    description="API para recomendar rutas de aprendizaje personalizadas basadas en características del estudiante",
-    version="1.0.0"
-)
+# Inicializar Flask
+app = Flask(__name__)
 
-# Inicializar predictor (se carga al iniciar la aplicación)
+# Exportar como 'application' para Passenger
+application = app
+
+# Cargar predictor al iniciar la aplicación
 predictor = None
-
-@app.on_event("startup")
-async def startup_event():
-    """Carga el modelo al iniciar la aplicación"""
-    global predictor
-    try:
-        modelos_dir = os.getenv("MODELOS_DIR", "modelos")
-        predictor = PredictorRutas(modelos_dir=modelos_dir)
-    except Exception as e:
-        print(f"Advertencia: No se pudo cargar el modelo al iniciar: {str(e)}")
-        predictor = None
+try:
+    modelos_dir = os.getenv("MODELOS_DIR", "modelos")
+    predictor = PredictorRutas(modelos_dir=modelos_dir)
+except Exception as e:
+    print(f"Advertencia: No se pudo cargar el modelo al iniciar: {str(e)}")
+    predictor = None
 
 
-@app.get("/", tags=["General"])
-async def root():
+@app.route("/", methods=["GET"])
+def root():
     """
     Endpoint raíz que devuelve información sobre la API
     """
-    return {
+    return jsonify({
         "message": "API de Recomendación de Rutas de Aprendizaje",
         "version": "1.0.0",
         "status": "active",
         "endpoints": {
-            "/docs": "Documentación interactiva (Swagger UI)",
-            "/redoc": "Documentación alternativa (ReDoc)",
+            "/": "Información de la API",
+            "/ping": "Endpoint de prueba",
             "/health": "Estado de salud de la API",
             "/predict": "POST - Predecir ruta para un estudiante",
             "/predict/batch": "POST - Predecir rutas para múltiples estudiantes",
             "/model/info": "GET - Información del modelo"
         }
-    }
+    })
 
 
-@app.get("/ping", tags=["General"])
-async def ping():
+@app.route("/ping", methods=["GET"])
+def ping():
     """
     Endpoint de prueba para verificar que la API está funcionando
     """
-    return {"message": "pong"}
+    return jsonify({"message": "pong"})
 
 
-@app.get("/health", tags=["General"])
-async def health_check():
+@app.route("/health", methods=["GET"])
+def health_check():
     """
     Verifica que la API y el modelo estén funcionando correctamente
     """
     if predictor is None or not predictor.cargado:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Modelo no disponible"
-        )
+        return jsonify({
+            "status": "unhealthy",
+            "modelo_cargado": False,
+            "error": "Modelo no disponible"
+        }), 503
     
-    return {
+    return jsonify({
         "status": "healthy",
         "modelo_cargado": predictor.cargado,
         "features_esperadas": predictor.metadata.get("num_features", 0) if predictor.metadata else 0
-    }
+    })
 
 
-@app.get("/model/info", tags=["Modelo"])
-async def model_info():
+@app.route("/model/info", methods=["GET"])
+def model_info():
     """
     Obtiene información detallada sobre el modelo entrenado
     """
     if predictor is None or not predictor.cargado:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Modelo no disponible. Verifica que los archivos del modelo estén en la carpeta 'modelos/'"
-        )
+        return jsonify({
+            "error": "Modelo no disponible. Verifica que los archivos del modelo estén en la carpeta 'modelos/'"
+        }), 503
     
     info = predictor.obtener_info()
-    return info
+    return jsonify(info)
 
 
-@app.post("/predict", response_model=ResponseModel, tags=["Predicción"])
-async def predecir_ruta(estudiante: DatosEstudiante):
+@app.route("/predict", methods=["POST"])
+def predecir_ruta():
     """
     Endpoint principal para obtener la ruta de aprendizaje recomendada para un estudiante
     
-    Args:
-        estudiante: Datos del estudiante para la predicción
-        
     Returns:
         Respuesta con la ruta recomendada y detalles de la predicción
     """
     if predictor is None or not predictor.cargado:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Modelo no disponible. Verifica que los archivos del modelo estén en la carpeta 'modelos/'"
-        )
+        return jsonify({
+            "success": False,
+            "error": "Modelo no disponible. Verifica que los archivos del modelo estén en la carpeta 'modelos/'"
+        }), 503
     
     try:
+        # Validar datos de entrada con Pydantic
+        datos_json = request.get_json()
+        if not datos_json:
+            return jsonify({
+                "success": False,
+                "error": "No se proporcionaron datos JSON"
+            }), 400
+        
+        estudiante = DatosEstudiante(**datos_json)
+        
         # Convertir modelo Pydantic a diccionario
         datos_estudiante = estudiante.dict()
         
@@ -139,39 +140,51 @@ async def predecir_ruta(estudiante: DatosEstudiante):
             mensaje=mensaje
         )
         
-        return ResponseModel(
+        return jsonify(ResponseModel(
             success=True,
             data=prediccion_response,
             error=None
-        )
+        ).dict())
         
+    except ValidationError as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error de validación: {str(e)}"
+        }), 400
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al realizar la predicción: {str(e)}"
-        )
+        return jsonify({
+            "success": False,
+            "error": f"Error al realizar la predicción: {str(e)}"
+        }), 500
 
 
-@app.post("/predict/batch", response_model=BatchResponse, tags=["Predicción"])
-async def predecir_rutas_batch(request: BatchRequest):
+@app.route("/predict/batch", methods=["POST"])
+def predecir_rutas_batch():
     """
     Permite obtener recomendaciones de rutas para varios estudiantes en una sola petición
     
-    Args:
-        request: Objeto con lista de estudiantes
-        
     Returns:
         Respuesta con predicciones para todos los estudiantes
     """
     if predictor is None or not predictor.cargado:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Modelo no disponible. Verifica que los archivos del modelo estén en la carpeta 'modelos/'"
-        )
+        return jsonify({
+            "success": False,
+            "error": "Modelo no disponible. Verifica que los archivos del modelo estén en la carpeta 'modelos/'"
+        }), 503
     
     try:
+        # Validar datos de entrada con Pydantic
+        datos_json = request.get_json()
+        if not datos_json:
+            return jsonify({
+                "success": False,
+                "error": "No se proporcionaron datos JSON"
+            }), 400
+        
+        batch_request = BatchRequest(**datos_json)
+        
         # Convertir lista de modelos Pydantic a diccionarios
-        lista_datos = [estudiante.dict() for estudiante in request.estudiantes]
+        lista_datos = [estudiante.dict() for estudiante in batch_request.estudiantes]
         
         # Realizar predicciones
         resultados = predictor.predecir_batch(lista_datos)
@@ -203,20 +216,23 @@ async def predecir_rutas_batch(request: BatchRequest):
                     )
                 )
         
-        return BatchResponse(
+        return jsonify(BatchResponse(
             success=True,
             total=len(predicciones),
             predicciones=predicciones
-        )
+        ).dict())
         
+    except ValidationError as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error de validación: {str(e)}"
+        }), 400
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al realizar las predicciones: {str(e)}"
-        )
+        return jsonify({
+            "success": False,
+            "error": f"Error al realizar las predicciones: {str(e)}"
+        }), 500
 
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
+    app.run(host="0.0.0.0", port=8000, debug=True)
