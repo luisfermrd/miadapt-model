@@ -1,25 +1,17 @@
-import os
 import sys
+import os
 
-# Ruta absoluta al proyecto
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, BASE_DIR)
+# Ruta del proyecto
+PROJECT_PATH = '/home/rparjemb/miadapt.com/backend/python'
+sys.path.insert(0, PROJECT_PATH)
 
-# Activar virtualenv creado por cPanel (si existe)
-VENV_ACTIVATE = os.path.join(BASE_DIR, "venv", "bin", "activate_this.py")
-if os.path.isfile(VENV_ACTIVATE):
-    with open(VENV_ACTIVATE) as f:
-        exec(f.read(), dict(__file__=VENV_ACTIVATE))
+# Ruta del virtualenv de Python
+VENV_PATH = '/home/rparjemb/virtualenv/miadapt.com/backend/python/3.8'
+
+# Activar el virtualenv correctamente
+activate_this = os.path.join(VENV_PATH, 'bin', 'activate_this.py')
+with open(activate_this) as f:
+    exec(f.read(), {'__file__': activate_this})
 
 # Importar la app FastAPI
-from app.main import app  # Tu aplicación FastAPI
-
-# Convertir ASGI a WSGI usando Mangum
-from mangum import Mangum
-handler = Mangum(app)
-
-def application(environ, start_response):
-    """
-    Application compatible con Passenger
-    """
-    return handler(environ, start_response)
+from app.main import app as application
