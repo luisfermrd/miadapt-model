@@ -1,0 +1,84 @@
+name: Deploy Python FastAPI API
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ----------------------------------------------------------------------
+      # 1. Crear entorno de despliegue
+      # ----------------------------------------------------------------------
+      - name: Prepare deployment package
+        run: |
+          mkdir -p deploy-package
+
+          # Copiar app/
+          if [ -d "app" ]; then
+            cp -r app deploy-package/
+          else
+            echo "❌ Error: carpeta app/ no existe"
+            exit 1
+          fi
+
+          # Copiar modelos/
+          if [ -d "modelos" ]; then
+            cp -r modelos deploy-package/
+          else
+            echo "⚠️ Advertencia: carpeta modelos/ no encontrada"
+          fi
+
+          # Copiar requirements.txt
+          if [ -f "requirements.txt" ]; then
+            cp requirements.txt deploy-package/
+          else
+            echo "❌ Error: requirements.txt no encontrado"
+            exit 1
+          fi
+
+          # Copiar passenger_wsgi.py
+          if [ -f "passenger_wsgi.py" ]; then
+            cp passenger_wsgi.py deploy-package/
+          else
+            echo "❌ Error: passenger_wsgi.py no encontrado"
+            exit 1
+          fi
+
+          echo "📁 Contenido final del paquete:"
+          ls -la deploy-package
+
+      # ----------------------------------------------------------------------
+      # 2. Subir a cPanel vía FTP
+      # ----------------------------------------------------------------------
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.2
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftp
+          local-dir: ./deploy-package/
+          server-dir: /backend/python/
+          timeout: 600000
+
+      # ----------------------------------------------------------------------
+      # 3. Reiniciar Passenger (FastAPI)
+      # ----------------------------------------------------------------------
+      - name: Restart Python API (Passenger)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.2
+        with:
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USER }}
+          password: ${{ secrets.FTP_PASS }}
+          port: ${{ secrets.FTP_PORT }}
+          protocol: ftp
+          local-dir: ./restart/
+          server-dir: /backend/python/tmp/
