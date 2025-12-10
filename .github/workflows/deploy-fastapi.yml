@@ -3,7 +3,7 @@ name: Deploy Python FastAPI API
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
