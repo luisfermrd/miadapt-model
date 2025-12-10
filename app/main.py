@@ -56,6 +56,14 @@ async def root():
     }
 
 
+@app.get("/ping", tags=["General"])
+async def ping():
+    """
+    Endpoint de prueba para verificar que la API está funcionando
+    """
+    return {"message": "pong"}
+
+
 @app.get("/health", tags=["General"])
 async def health_check():
     """

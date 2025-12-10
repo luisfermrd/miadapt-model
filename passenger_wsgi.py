@@ -1,17 +1,33 @@
 import sys
 import os
+from mangum import Mangum
 
-# Ruta del proyecto
-PROJECT_PATH = '/home/rparjemb/miadapt.com/backend/python'
-sys.path.insert(0, PROJECT_PATH)
+# Añadir el path correcto para importar el proyecto
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
 
-# Ruta del virtualenv de Python
-VENV_PATH = '/home/rparjemb/virtualenv/miadapt.com/backend/python/3.8'
-
-# Activar el virtualenv correctamente
-activate_this = os.path.join(VENV_PATH, 'bin', 'activate_this.py')
-with open(activate_this) as f:
-    exec(f.read(), {'__file__': activate_this})
-
-# Importar la app FastAPI
-from app.main import app as application
+# Importar FastAPI desde app/main.py
+try:
+    from app.main import app
+    # Adaptador para que Passenger -> WSGI -> ASGI (FastAPI)
+    handler = Mangum(app)
+except Exception as e:
+    # Si hay error al importar, crear un handler de error
+    def application(environ, start_response):
+        status = "500 Internal Server Error"
+        headers = [("Content-Type", "text/plain")]
+        start_response(status, headers)
+        return [f"Error loading FastAPI app: {e}".encode()]
+else:
+    # Si la importación fue exitosa, crear el handler WSGI
+    def application(environ, start_response):
+        """
+        Passenger requiere un callable WSGI.
+        Mangum convierte la petición a ASGI para FastAPI.
+        Esto mantiene compatibilidad con Passenger.
+        """
+        try:
+            return handler(environ, start_response)
+        except Exception as e:
+            start_response("500 Internal Server Error", [("Content-Type", "text/plain")])
+            return [str(e).encode("utf-8")]
